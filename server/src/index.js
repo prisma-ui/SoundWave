@@ -7,6 +7,7 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
+import os from 'os';
 
 dotenv.config();
 
@@ -18,12 +19,19 @@ const PORT = process.env.PORT || 5000;
 
 // Middleware
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
-// Setup uploads directory
-const uploadsDir = path.join(__dirname, 'uploads');
-const processedDir = path.join(__dirname, 'processed');
+// Use tmp directory for file storage (works on Vercel/Render)
+const uploadsDir = process.env.NODE_ENV === 'production' 
+  ? path.join(os.tmpdir(), 'soundwave-uploads')
+  : path.join(__dirname, 'uploads');
 
+const processedDir = process.env.NODE_ENV === 'production'
+  ? path.join(os.tmpdir(), 'soundwave-processed')
+  : path.join(__dirname, 'processed');
+
+// Create directories if they don't exist
 if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true });
 }
@@ -45,24 +53,37 @@ const storage = multer.diskStorage({
 
 const upload = multer({
   storage: storage,
-  limits: { fileSize: 500 * 1024 * 1024 }, // 500MB
+  limits: { fileSize: 100 * 1024 * 1024 }, // 100MB (reduced for safety)
   fileFilter: (req, file, cb) => {
-    const allowedMimes = ['audio/mpeg', 'audio/wav', 'audio/flac', 'audio/ogg', 'audio/x-wav'];
+    const allowedMimes = [
+      'audio/mpeg',
+      'audio/wav',
+      'audio/flac',
+      'audio/ogg',
+      'audio/x-wav',
+      'audio/mp4',
+      'audio/aac'
+    ];
     if (allowedMimes.includes(file.mimetype)) {
       cb(null, true);
     } else {
-      cb(new Error('Invalid file type'));
+      cb(new Error(`Invalid file type: ${file.mimetype}`));
     }
   }
 });
 
 // Rate limiting per IP
 const uploadCounts = new Map();
-const UPLOAD_LIMIT = 5;
+const UPLOAD_LIMIT = 10;
 const RESET_TIME = 24 * 60 * 60 * 1000;
 
 function getClientIP(req) {
-  return req.ip || req.connection.remoteAddress || 'unknown';
+  // Get the real IP from Vercel/Render headers
+  const forwarded = req.headers['x-forwarded-for'];
+  if (forwarded) {
+    return forwarded.split(',')[0].trim();
+  }
+  return req.ip || req.connection?.remoteAddress || 'unknown';
 }
 
 function checkUploadLimit(ip) {
@@ -90,7 +111,17 @@ function checkUploadLimit(ip) {
 
 // Health check
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', message: 'Server is running' });
+  res.json({ 
+    status: 'ok', 
+    message: 'Server is running',
+    environment: process.env.NODE_ENV,
+    timestamp: new Date().toISOString()
+  });
+});
+
+// Root route for Vercel
+app.get('/', (req, res) => {
+  res.json({ message: 'SoundWave API Server', version: '1.0.0' });
 });
 
 // Get upload count
@@ -114,9 +145,13 @@ app.post('/api/upload', upload.single('audio'), (req, res) => {
     
     if (!checkUploadLimit(ip)) {
       if (req.file) {
-        fs.unlinkSync(req.file.path);
+        try {
+          fs.unlinkSync(req.file.path);
+        } catch (e) {
+          console.warn('Failed to delete file:', e);
+        }
       }
-      return res.status(429).json({ error: 'Upload limit reached (5 per IP/24h)' });
+      return res.status(429).json({ error: 'Upload limit reached (10 per IP/24h)' });
     }
 
     if (!req.file) {
@@ -141,7 +176,7 @@ app.post('/api/upload', upload.single('audio'), (req, res) => {
     });
   } catch (error) {
     console.error('Upload error:', error);
-    res.status(500).json({ error: 'Upload failed' });
+    res.status(500).json({ error: error.message || 'Upload failed' });
   }
 });
 
@@ -168,7 +203,12 @@ app.post('/api/process', express.json(), (req, res) => {
     const processedPath = path.join(processedDir, `${processedId}.wav`);
 
     // Create dummy processed file (dalam production, gunakan ffmpeg-fluent untuk real processing)
-    fs.copyFileSync(filePath, processedPath);
+    try {
+      fs.copyFileSync(filePath, processedPath);
+    } catch (error) {
+      console.error('Copy error:', error);
+      return res.status(500).json({ error: 'Failed to copy file' });
+    }
 
     res.json({
       id: processedId,
@@ -186,7 +226,7 @@ app.post('/api/process', express.json(), (req, res) => {
     });
   } catch (error) {
     console.error('Processing error:', error);
-    res.status(500).json({ error: 'Processing failed' });
+    res.status(500).json({ error: error.message || 'Processing failed' });
   }
 });
 
@@ -202,10 +242,16 @@ app.get('/api/download/:fileId', (req, res) => {
 
     res.download(filePath, 'soundwave-processed.wav', (err) => {
       if (err) console.error('Download error:', err);
+      // Clean up after download
+      try {
+        fs.unlinkSync(filePath);
+      } catch (e) {
+        console.warn('Failed to cleanup file:', e);
+      }
     });
   } catch (error) {
     console.error('Download error:', error);
-    res.status(500).json({ error: 'Download failed' });
+    res.status(500).json({ error: error.message || 'Download failed' });
   }
 });
 
@@ -228,7 +274,7 @@ app.post('/api/waveform', express.json(), (req, res) => {
     });
   } catch (error) {
     console.error('Waveform error:', error);
-    res.status(500).json({ error: 'Failed to generate waveform' });
+    res.status(500).json({ error: error.message || 'Failed to generate waveform' });
   }
 });
 
@@ -254,7 +300,7 @@ app.post('/api/profile', express.json(), (req, res) => {
     });
   } catch (error) {
     console.error('Profile error:', error);
-    res.status(500).json({ error: 'Failed to apply profile' });
+    res.status(500).json({ error: error.message || 'Failed to apply profile' });
   }
 });
 
@@ -278,33 +324,63 @@ app.post('/api/preset', express.json(), (req, res) => {
     });
   } catch (error) {
     console.error('Preset error:', error);
-    res.status(500).json({ error: 'Failed to apply preset' });
+    res.status(500).json({ error: error.message || 'Failed to apply preset' });
   }
 });
 
-// Cleanup old files (run every hour)
-setInterval(() => {
-  const oneHourAgo = Date.now() - 60 * 60 * 1000;
+// Cleanup old files (run every 30 minutes)
+const cleanupInterval = setInterval(() => {
+  const thirtyMinutesAgo = Date.now() - 30 * 60 * 1000;
   
   [uploadsDir, processedDir].forEach(dir => {
-    fs.readdirSync(dir).forEach(file => {
-      const filePath = path.join(dir, file);
-      const stats = fs.statSync(filePath);
-      
-      if (stats.mtimeMs < oneHourAgo) {
-        fs.unlinkSync(filePath);
+    try {
+      if (fs.existsSync(dir)) {
+        fs.readdirSync(dir).forEach(file => {
+          const filePath = path.join(dir, file);
+          try {
+            const stats = fs.statSync(filePath);
+            
+            if (stats.mtimeMs < thirtyMinutesAgo) {
+              fs.unlinkSync(filePath);
+              console.log(`Deleted old file: ${file}`);
+            }
+          } catch (e) {
+            console.warn(`Failed to process file ${file}:`, e.message);
+          }
+        });
       }
-    });
+    } catch (e) {
+      console.warn(`Failed to cleanup directory:`, e.message);
+    }
   });
-}, 60 * 60 * 1000);
+}, 30 * 60 * 1000); // Run every 30 minutes
+
+// Cleanup on exit
+process.on('exit', () => {
+  clearInterval(cleanupInterval);
+});
 
 // Error handler
 app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({ error: err.message || 'Internal server error' });
+  console.error('Error:', err);
+  res.status(500).json({ 
+    error: err.message || 'Internal server error',
+    code: err.code || 'INTERNAL_ERROR'
+  });
 });
 
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`✅ Server running on port ${PORT}`);
   console.log(`📍 API: http://localhost:${PORT}/api`);
+  console.log(`🌍 Environment: ${process.env.NODE_ENV}`);
+  console.log(`📁 Uploads directory: ${uploadsDir}`);
+});
+
+// Handle graceful shutdown
+process.on('SIGTERM', () => {
+  console.log('SIGTERM received, shutting down gracefully...');
+  server.close(() => {
+    console.log('Server closed');
+    process.exit(0);
+  });
 });
