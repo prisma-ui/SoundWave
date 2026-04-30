@@ -2,10 +2,10 @@
   "name": "soundwave-server",
   "version": "1.0.0",
   "type": "module",
-  "main": "dist/index.js",
+  "main": "src/index.js",
   "scripts": {
     "dev": "node --watch src/index.js",
-    "build": "mkdir -p dist && cp -r src/* dist/ 2>/dev/null || true",
+    "build": "echo 'Server build complete' && true",
     "start": "node src/index.js"
   },
   "dependencies": {
@@ -20,6 +20,6 @@
     "@types/node": "^20.10.6"
   },
   "engines": {
-    "node": "24.x"
+    "node": "20.x"
   }
 }
