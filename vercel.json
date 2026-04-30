@@ -8,11 +8,6 @@
       "maxDuration": 60
     }
   },
-  {
-  "builds": [
-    { "src": "package.json", "use": "@vercel/next" }
-  ]
-},
   "env": {
     "PORT": "5000",
     "NODE_ENV": "production"
