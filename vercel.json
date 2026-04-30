@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "buildCommand": "npm install && npm run build -w client",
+  "buildCommand": "npm run build -w client",
   "outputDirectory": "client/dist",
   "installCommand": "npm install",
   "env": {
