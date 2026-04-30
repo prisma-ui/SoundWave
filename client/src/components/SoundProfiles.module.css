@@ -1,0 +1,114 @@
+.card {
+  background: var(--bg-secondary);
+  border-radius: var(--border-radius);
+  padding: 24px;
+  border: 1px solid var(--bg-tertiary);
+  backdrop-filter: blur(10px);
+}
+
+.title {
+  font-size: 1.3em;
+  margin-bottom: 20px;
+  color: var(--accent-primary);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-weight: 600;
+}
+
+.profiles {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.profileBtn {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+  padding: 12px;
+  border-radius: 8px;
+  font-size: 0.85em;
+  font-weight: 500;
+  border: 2px solid var(--bg-tertiary);
+  text-transform: capitalize;
+  transition: var(--transition);
+  cursor: pointer;
+}
+
+.profileBtn:hover {
+  border-color: var(--accent-primary);
+  background: rgba(0, 212, 255, 0.1);
+}
+
+.profileBtn.active {
+  background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+  border-color: var(--accent-primary);
+  color: var(--bg-primary);
+  font-weight: 600;
+}
+
+.description {
+  background: rgba(0, 212, 255, 0.1);
+  border-left: 3px solid var(--accent-primary);
+  padding: 12px;
+  border-radius: 6px;
+  margin-bottom: 20px;
+  font-size: 0.9em;
+}
+
+.description strong {
+  color: var(--accent-primary);
+  display: block;
+  margin-bottom: 4px;
+}
+
+.description p {
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.presetsTitle {
+  font-size: 0.95em;
+  color: var(--text-secondary);
+  margin-bottom: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+}
+
+.presets {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+.presetBtn {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+  padding: 12px;
+  border-radius: 8px;
+  font-size: 0.85em;
+  border: 1px solid var(--bg-tertiary);
+  text-transform: capitalize;
+  transition: var(--transition);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  cursor: pointer;
+}
+
+.presetBtn:hover {
+  border-color: var(--accent-primary);
+  background: rgba(0, 212, 255, 0.1);
+}
+
+.icon {
+  font-size: 1em;
+}
+
+@media (max-width: 768px) {
+  .profiles {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

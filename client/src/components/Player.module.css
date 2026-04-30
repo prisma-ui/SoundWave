@@ -1,0 +1,96 @@
+.card {
+  background: var(--bg-secondary);
+  border-radius: var(--border-radius);
+  padding: 24px;
+  border: 1px solid var(--bg-tertiary);
+  backdrop-filter: blur(10px);
+}
+
+.title {
+  font-size: 1.3em;
+  margin-bottom: 20px;
+  color: var(--accent-primary);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-weight: 600;
+}
+
+.fileInfo {
+  background: var(--bg-tertiary);
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  font-size: 0.9em;
+  color: var(--text-secondary);
+}
+
+.fileInfo p {
+  margin: 4px 0;
+}
+
+.fileInfo strong {
+  color: var(--text-primary);
+}
+
+.waveform {
+  margin: 20px 0;
+  background: var(--bg-primary);
+  border-radius: 8px;
+  padding: 10px;
+  min-height: 120px;
+}
+
+.controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 15px;
+  margin-top: 20px;
+}
+
+.controlBtn {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  font-size: 1.2em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--bg-tertiary);
+  transition: var(--transition);
+}
+
+.controlBtn:hover {
+  border-color: var(--accent-primary);
+  background: rgba(0, 212, 255, 0.1);
+}
+
+.playBtn {
+  background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+  color: var(--bg-primary);
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  font-size: 1.3em;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(0, 212, 255, 0.3);
+  transition: var(--transition);
+}
+
+.playBtn:hover {
+  transform: scale(1.08);
+  box-shadow: 0 6px 16px rgba(0, 212, 255, 0.4);
+}
+
+.timeDisplay {
+  color: var(--text-secondary);
+  font-size: 0.9em;
+  font-weight: 500;
+  min-width: 100px;
+  text-align: center;
+}
