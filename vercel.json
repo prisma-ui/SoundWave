@@ -1,15 +1,34 @@
 {
+  "version": 2,
   "buildCommand": "npm run build",
   "outputDirectory": "client/dist",
-  "framework": "vite",
+  "installCommand": "npm run install-all",
+  "env": {
+    "NODE_ENV": "production",
+    "PORT": "5000"
+  },
   "functions": {
-    "api/**": {
+    "server/src/index.js": {
+      "runtime": "nodejs20.x",
       "memory": 1024,
       "maxDuration": 60
     }
   },
-  "env": {
-    "PORT": "5000",
-    "NODE_ENV": "production"
-  }
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "/server/src/index.js"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/api/:path*",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache, no-store, must-revalidate"
+        }
+      ]
+    }
+  ]
 }
