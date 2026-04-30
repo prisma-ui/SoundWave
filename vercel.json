@@ -2,7 +2,6 @@
   "buildCommand": "npm run build",
   "outputDirectory": "client/dist",
   "framework": "vite",
-  "nodeVersion": "18.x",
   "functions": {
     "api/**": {
       "memory": 1024,
