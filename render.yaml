@@ -1,20 +1,15 @@
 services:
   - type: web
-    name: soundwave-client
-    buildCommand: "cd client && npm install && npm run build"
-    startCommand: "cd client && npm run preview"
+    name: soundwave-app
+    env: node
+    plan: starter
+    buildCommand: npm run install-all && npm run build
+    startCommand: npm start
     envVars:
       - key: NODE_ENV
         value: production
       - key: PORT
-        value: 3000
-
-  - type: web
-    name: soundwave-server
-    buildCommand: "cd server && npm install"
-    startCommand: "cd server && npm start"
-    envVars:
-      - key: NODE_ENV
-        value: production
-      - key: PORT
-        value: 5000
+        value: "5000"
+    domains:
+      - soundwave-app.onrender.com
+    autoDeploy: true
