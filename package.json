@@ -8,7 +8,8 @@
     "dev": "concurrently \"npm run dev -w client\" \"npm run dev -w server\"",
     "build": "npm run build -w client && npm run build -w server",
     "start": "node server/dist/index.js",
-    "preview": "npm run preview -w client"
+    "preview": "npm run preview -w client",
+    "prepare": "npm install --legacy-peer-deps"
   },
   "workspaces": [
     "client",
@@ -18,6 +19,6 @@
     "concurrently": "^8.2.2"
   },
   "engines": {
-    "node": "24.x"
+    "node": "20.x"
   }
 }
